@@ -60,6 +60,8 @@ func main() {
 		for range ttsApp.activateChan {
 			w.Show()
 			w.RequestFocus()
+			// Focus on text area
+			w.Canvas().Focus(ttsApp.textArea)
 		}
 	}()
 
