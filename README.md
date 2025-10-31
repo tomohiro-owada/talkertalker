@@ -5,20 +5,25 @@ superwhisperで翻訳されたテキストを自動で読み上げるmacOS用GUI
 ## 特徴
 
 - **タガログ語・日本語対応**
-  - タガログ語: 女性音声（Blessica）
-  - 日本語: 男性音声（Keita）
+  - タガログ語: 男性音声（Angelo）
+  - 日本語: 女性音声（Nanami）
 - **2つのアプリを同時起動可能**
   - タガログ語専用アプリ
   - 日本語専用アプリ
+- **グローバルホットキー対応**
+  - **Ctrl+Shift+G**: どこからでも日本語アプリをアクティブ化
+  - **Ctrl+Shift+H**: どこからでもタガログ語アプリをアクティブ化
+- **Auto Read機能**: テキストが貼り付けられると自動で読み上げ開始
+- **自動クリア**: 読み上げ完了後、テキストを自動削除
 - **高品質な音声**: Microsoft Edge TTSを使用（無料）
 - **シンプルなGUI**: Fyne製の軽量アプリ
-- **クリップボード連携**: "Paste & Speak"ボタンでワンクリック読み上げ
 
 ## 必要要件
 
 - macOS
 - Python 3.x（edge-ttsコマンド用）
 - インターネット接続（Edge TTS APIを使用するため）
+- **アクセシビリティ権限**（グローバルホットキー機能を使用する場合）
 
 ## インストール
 
@@ -29,7 +34,17 @@ pip install --upgrade edge-tts
 # edge-tts 7.2.3以降が必要です
 ```
 
-### 2. アプリケーションのビルド（オプション）
+### 2. アクセシビリティ権限の設定
+
+グローバルホットキー（Ctrl+Shift+G / Ctrl+Shift+H）を使用するには、アプリにアクセシビリティ権限を付与する必要があります：
+
+1. アプリを初回起動すると、権限のリクエストが表示されます
+2. **システム設定** → **プライバシーとセキュリティ** → **アクセシビリティ** を開く
+3. 「TalkerTalker Japanese」と「TalkerTalker Tagalog」を有効にする
+
+権限を付与しないとホットキーは機能しませんが、アプリ自体は通常通り使用できます。
+
+### 3. アプリケーションのビルド（オプション）
 
 既にビルド済みのバイナリ（`talkertalker`）が含まれています。
 再ビルドする場合は：
@@ -84,18 +99,25 @@ go build -o talkertalker .
 
 ## 使用方法
 
-### 方法1: テキストボックスで入力
+### 方法1: Auto Read機能（推奨）
+
+1. アプリを起動（Auto Readはデフォルトでオン）
+2. superwhisperで音声入力→翻訳
+3. 翻訳結果をTalkerTalkerのテキストボックスに貼り付け
+4. **自動で読み上げ開始！**
+5. 読み上げ完了後、テキストが自動でクリアされます
+
+### 方法2: グローバルホットキーで素早くアクセス
+
+1. 他のアプリを使用中でも **Ctrl+Shift+G**（日本語）または **Ctrl+Shift+H**（タガログ語）を押す
+2. TalkerTalkerがアクティブになる
+3. テキストを貼り付けると自動で読み上げ
+
+### 方法3: 手動操作
 
 1. アプリを起動
 2. テキストボックスにテキストを入力または貼り付け
-3. "Speak"ボタンをクリック
-
-### 方法2: クリップボードから即座に読み上げ
-
-1. superwhisperで音声入力→翻訳
-2. 翻訳結果をコピー（自動でクリップボードにコピーされる）
-3. TalkerTalkerアプリで"Paste & Speak"ボタンをクリック
-4. 自動で読み上げ開始！
+3. "Speak"ボタンをクリック（Auto Readがオフの場合）
 
 ## プロジェクト構造
 
@@ -123,13 +145,14 @@ talkertalker/
 - **TTS**: Microsoft Edge TTS (edge-tts CLI経由)
 - **音声再生**: macOS標準の`afplay`コマンド
 - **クリップボード**: atotto/clipboard
+- **グローバルホットキー**: robotn/gohook
 
 ## 対応音声
 
 | 言語 | コード | 音声名 | 性別 |
 |------|--------|--------|------|
-| タガログ語 | tl | fil-PH-BlessicaNeural | 女性 |
-| 日本語 | ja | ja-JP-KeitaNeural | 男性 |
+| タガログ語 | tl | fil-PH-AngeloNeural | 男性 |
+| 日本語 | ja | ja-JP-NanamiNeural | 女性 |
 
 音声の変更は `tts/tts.go:16-19` で設定できます。
 
@@ -159,9 +182,17 @@ go mod tidy
 go build -o talkertalker .
 ```
 
+### ホットキーが動作しない
+
+1. システム設定でアクセシビリティ権限が付与されているか確認
+2. アプリを一度終了して再起動
+3. 権限を付与した後、macOS自体の再起動が必要な場合があります
+
 ## 今後の拡張予定
 
-- [ ] グローバルホットキー機能
+- [x] グローバルホットキー機能
+- [x] Auto Read機能
+- [x] 読み上げ後の自動クリア
 - [ ] メニューバーアプリ化
 - [ ] 音声速度調整
 - [ ] 音声保存機能
@@ -175,3 +206,4 @@ MIT License
 - [Fyne](https://fyne.io/) - Cross-platform GUI toolkit
 - [Edge TTS](https://github.com/rany2/edge-tts) - Microsoft Edge Text-to-Speech
 - [clipboard](https://github.com/atotto/clipboard) - Cross-platform clipboard library
+- [gohook](https://github.com/robotn/gohook) - Global hotkey library for Go

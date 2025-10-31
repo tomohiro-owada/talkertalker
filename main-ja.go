@@ -11,6 +11,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/atotto/clipboard"
+	hook "github.com/robotn/gohook"
 )
 
 type AppJA struct {
@@ -24,6 +25,7 @@ type AppJA struct {
 	autoRead       bool
 	debounceTimer  *time.Timer
 	lastText       string
+	activateChan   chan bool
 }
 
 func main() {
@@ -40,14 +42,26 @@ func main() {
 
 	// Create app instance
 	ttsApp := &AppJA{
-		speaker:  speaker,
-		fyneApp:  a,
-		window:   w,
-		speaking: false,
+		speaker:      speaker,
+		fyneApp:      a,
+		window:       w,
+		speaking:     false,
+		activateChan: make(chan bool, 1),
 	}
 
 	// Setup UI
 	ttsApp.setupUI()
+
+	// Setup global hotkey (Ctrl+Shift+G)
+	go ttsApp.setupHotkey()
+
+	// Monitor activation channel in main thread
+	go func() {
+		for range ttsApp.activateChan {
+			w.Show()
+			w.RequestFocus()
+		}
+	}()
 
 	w.ShowAndRun()
 }
@@ -126,6 +140,21 @@ func (a *AppJA) setupUI() {
 	)
 
 	a.window.SetContent(content)
+}
+
+func (a *AppJA) setupHotkey() {
+	// Register Ctrl+Shift+G to activate window
+	hook.Register(hook.KeyDown, []string{"ctrl", "shift", "g"}, func(e hook.Event) {
+		// Send activation signal to main thread
+		select {
+		case a.activateChan <- true:
+		default:
+			// Channel full, skip
+		}
+	})
+
+	s := hook.Start()
+	<-hook.Process(s)
 }
 
 func (a *AppJA) speakText(text string) {
